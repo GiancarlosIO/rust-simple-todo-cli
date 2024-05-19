@@ -118,7 +118,7 @@ impl Db {
             return;
         }
 
-        println!("The TODO List contains the following elements: \n");
+        println!("The TODO List contains the following elements:\n");
         print_row("ID", "Completed", "Name");
         for (index, line) in lines {
             // just an extra code to validate that the todo/line must only have two elements
@@ -128,7 +128,7 @@ impl Db {
             }
 
             let todo = if let Some(v) = parts.get(0) {
-                v
+                v.trim()
             } else {
                 "invalid"
             };
