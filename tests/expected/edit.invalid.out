@@ -1,0 +1,1 @@
+The given todo id (123) doesn't exists in the database. Please use the `list` command and check that the todo with id 123 exists.
