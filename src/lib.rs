@@ -18,7 +18,7 @@ pub struct Cli {
     command: Commands,
 
     /// custom db text filename
-    #[arg(short, long, default_value = DB_NAME)]
+    #[arg(short = 'd', long, default_value = DB_NAME)]
     db_name: String,
 }
 
