@@ -3,14 +3,14 @@ use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Seek, SeekFrom, Write};
 
 pub const SEPARATOR: &str = "____";
-pub const DB_NAME: &str = "db.txt";
 
 pub struct Db {
     file: File,
+    db_filename: String,
 }
 
 impl Db {
-    pub fn new() -> MyResult<Self> {
+    pub fn new(db_filename: String) -> MyResult<Self> {
         // Advanced way to open and file
         let file = OpenOptions::new()
             .read(true)
@@ -18,9 +18,9 @@ impl Db {
             .append(true)
             // Create the file if it doesn't exists
             .create(true)
-            .open(DB_NAME)?;
+            .open(&db_filename)?;
 
-        Ok(Self { file })
+        Ok(Self { file, db_filename })
     }
 
     pub fn add_todo(&mut self, todo: &str) {
@@ -38,9 +38,15 @@ impl Db {
 
     pub fn edit_todo(&mut self, todo_id: &usize, name: &String) {
         let lines = self.read_lines();
+        let len = lines.len();
         let index_to_edit = *todo_id - 1;
 
-        if index_to_edit > lines.len() {
+        if len == 0 {
+            eprintln!("The database is empty. Use the `add` command to add a new todo.");
+            return;
+        }
+
+        if index_to_edit > len {
             eprintln!("The given todo id ({}) doesn't exists in the database. Please use the `list` command and check that the todo with id {} exists.", todo_id, todo_id);
             return;
         }
@@ -65,7 +71,7 @@ impl Db {
 
         // update the file content
         let new_content = new_lines.join("\n");
-        match override_db_content(new_content) {
+        match override_db_content(new_content, &self.db_filename) {
             Ok(_) => {
                 println!("The todo with id {} was edited.", todo_id);
                 self.list();
@@ -94,7 +100,7 @@ impl Db {
             }
         }
 
-        match override_db_content(new_content.join("\n")) {
+        match override_db_content(new_content.join("\n"), &self.db_filename) {
             Ok(_) => {
                 println!("Todo with id {} deleted.", todo_id)
             }
@@ -164,14 +170,18 @@ impl Db {
     }
 }
 
-pub fn create_db() -> MyResult<Db> {
-    Db::new()
+pub fn create_db(db_filename: &String) -> MyResult<Db> {
+    Db::new(db_filename.clone())
 }
 
-fn override_db_content(new_content: String) -> MyResult<()> {
+fn override_db_content(new_content: String, db_filename: &String) -> MyResult<()> {
     // open the file again but this time with only write mode and truncating it to zero length.
     // truncate(true) will delete all the content of the file
-    match OpenOptions::new().write(true).truncate(true).open(DB_NAME) {
+    match OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open(&db_filename)
+    {
         Ok(mut file) => file.write_all(new_content.as_bytes())?,
         Err(err) => {
             eprintln!(

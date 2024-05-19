@@ -3,6 +3,7 @@ use std::error::Error;
 
 pub mod db;
 
+pub const DB_NAME: &str = "db.txt";
 type MyResult<T> = Result<T, Box<dyn Error>>;
 
 #[derive(Debug, Parser)]
@@ -15,6 +16,10 @@ type MyResult<T> = Result<T, Box<dyn Error>>;
 pub struct Cli {
     #[command(subcommand)]
     command: Commands,
+
+    /// custom db text filename
+    #[arg(short, long, default_value = DB_NAME)]
+    db_name: String,
 }
 
 #[derive(Subcommand, Debug)]
@@ -52,7 +57,7 @@ pub fn new_cli() -> MyResult<Cli> {
 }
 
 pub fn run(cli: Cli) -> MyResult<()> {
-    let mut db = db::create_db()?;
+    let mut db = db::create_db(&cli.db_name)?;
 
     match &cli.command {
         Commands::Add { name } => {
